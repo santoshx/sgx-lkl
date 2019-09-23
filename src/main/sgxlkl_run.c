@@ -237,11 +237,8 @@ static void help(char* prog) {
     printf("\n## Attestation ##\n");
     printf("SGXLKL_IAS_SPID: Specifies the Service Provider ID (SPID) required for communication with the Intel Attestation Service (IAS).\n");
     printf("SGXLKL_IAS_QUOTE_TYPE: Specifies the quote type: '0' for unlinkable quotes (default), '1' for linkable quotes.\n");
-    printf("SGXLKL_IAS_KEY_FILE: Path to the private key file.\n");
-    printf("SGXLKL_IAS_CERT: Path to the IAS certificate file.\n");
     printf("SGXLKL_IAS_SERVER: IAS server to use (Default: %s).\n", DEFAULT_SGXLKL_IAS_SERVER);
     printf("\n## Remote control ##\n");
-    printf("SGXLKL_REMOTE_ATTEST_PORT: Port to use on public interface for attestation server (Default: %d).\n", DEFAULT_SGXLKL_REMOTE_ATTEST_PORT);
     printf("SGXLKL_REMOTE_CMD_PORT: Port to use on Wireguard interface for remote control server (Default: %d).\n", DEFAULT_SGXLKL_REMOTE_CMD_PORT);
     printf("SGXLKL_REMOTE_CMD_ETH0: Set to 1 to expose server on eth0 interface instead. If specified no separate attestation server is created. Will be ignored in release mode.\n");
     printf("SGXLKL_REMOTE_CONFIG: Set to 1 to ignore application and application arguments specified via command line and wait for application configuration to be provided via remote control server (Default: 0, always 1 in release mode).\n");
@@ -1008,12 +1005,10 @@ void* enclave_thread(void* parm) {
                 _attn_info.quote_size = quote_size;
 
                 if (sgxlkl_config_str(SGXLKL_IAS_SPID)) {
-                    if (!_attn_config.ias_key_file && sgxlkl_config_bool(SGXLKL_VERBOSE))
-                        sgxlkl_info("No IAS key file provided (via SGXLKL_IAS_KEY_FILE). Skipping IAS attestation...\n");
-                    else if (!_attn_config.ias_cert_file && sgxlkl_config_bool(SGXLKL_VERBOSE))
-                        sgxlkl_info("No IAS certificate provided (via SGXLKL_IAS_CERT). Skipping IAS attestation...\n");
+                    if (!_attn_config.ias_subscription_key && sgxlkl_config_bool(SGXLKL_VERBOSE))
+                        sgxlkl_info("No IAS subscription key provided (via SGXLKL_IAS_SUBSCRIPT_KEY). Skipping IAS attestation...\n");
 
-                    if (_attn_config.ias_key_file && _attn_config.ias_cert_file)
+                    if (_attn_config.ias_subscription_key)
                         _attn_info.ias_report = get_attestation_report(quote, quote_size);
                 }
 
@@ -1114,9 +1109,8 @@ void init_attestation(enclave_config_t *conf) {
         char *quote_type = sgxlkl_config_str(SGXLKL_IAS_QUOTE_TYPE);
         _attn_config.quote_type = !strcmp(quote_type, "Unlinkable") ? SGX_UNLINKABLE_SIGNATURE : SGX_LINKABLE_SIGNATURE;
 
-        _attn_config.ias_key_file = sgxlkl_config_str(SGXLKL_IAS_KEY_FILE);
-        _attn_config.ias_cert_file = sgxlkl_config_str(SGXLKL_IAS_CERT);
         _attn_config.ias_server = sgxlkl_config_str(SGXLKL_IAS_SERVER);
+        _attn_config.ias_subscription_key = sgxlkl_config_str(SGXLKL_IAS_SUBSCRIPT_KEY);
     } else if (sgxlkl_config_bool(SGXLKL_VERBOSE))
         sgxlkl_info("No IAS SPID provided, enclave quote will not be verifiable by IAS.\n");
 
@@ -1551,7 +1545,6 @@ int main(int argc, char *argv[], char *envp[]) {
     encl.kernel_cmd = sgxlkl_config_str(SGXLKL_CMDLINE);
     encl.sysctl = sgxlkl_config_str(SGXLKL_SYSCTL);
     encl.cwd = sgxlkl_config_str(SGXLKL_CWD);
-    encl.remote_attest_port = (uint16_t) sgxlkl_config_uint64(SGXLKL_REMOTE_ATTEST_PORT);
     encl.remote_cmd_port = (uint16_t) sgxlkl_config_uint64(SGXLKL_REMOTE_CMD_PORT);
     encl.remote_cmd_eth0 = sgxlkl_config_bool(SGXLKL_REMOTE_CMD_ETH0);
     encl.remote_config = sgxlkl_config_bool(SGXLKL_REMOTE_CONFIG);
