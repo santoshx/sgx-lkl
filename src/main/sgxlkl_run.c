@@ -239,6 +239,7 @@ static void help(char* prog) {
     printf("SGXLKL_IAS_QUOTE_TYPE: Specifies the quote type: '0' for unlinkable quotes (default), '1' for linkable quotes.\n");
     printf("SGXLKL_IAS_SERVER: IAS server to use (Default: %s).\n", DEFAULT_SGXLKL_IAS_SERVER);
     printf("\n## Remote control ##\n");
+    printf("SGXLKL_REMOTE_ATTEST_PORT: Port to use on public interface for attestation server (Default: %d).\n", DEFAULT_SGXLKL_REMOTE_ATTEST_PORT);
     printf("SGXLKL_REMOTE_CMD_PORT: Port to use on Wireguard interface for remote control server (Default: %d).\n", DEFAULT_SGXLKL_REMOTE_CMD_PORT);
     printf("SGXLKL_REMOTE_CMD_ETH0: Set to 1 to expose server on eth0 interface instead. If specified no separate attestation server is created. Will be ignored in release mode.\n");
     printf("SGXLKL_REMOTE_CONFIG: Set to 1 to ignore application and application arguments specified via command line and wait for application configuration to be provided via remote control server (Default: 0, always 1 in release mode).\n");
@@ -1545,6 +1546,7 @@ int main(int argc, char *argv[], char *envp[]) {
     encl.kernel_cmd = sgxlkl_config_str(SGXLKL_CMDLINE);
     encl.sysctl = sgxlkl_config_str(SGXLKL_SYSCTL);
     encl.cwd = sgxlkl_config_str(SGXLKL_CWD);
+    encl.remote_attest_port = (uint16_t) sgxlkl_config_uint64(SGXLKL_REMOTE_ATTEST_PORT);
     encl.remote_cmd_port = (uint16_t) sgxlkl_config_uint64(SGXLKL_REMOTE_CMD_PORT);
     encl.remote_cmd_eth0 = sgxlkl_config_bool(SGXLKL_REMOTE_CMD_ETH0);
     encl.remote_config = sgxlkl_config_bool(SGXLKL_REMOTE_CONFIG);
